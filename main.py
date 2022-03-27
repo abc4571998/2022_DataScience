@@ -1,9 +1,11 @@
 import copy
+import itertools
+import sys
 from pprint import pprint as pp
 from itertools import combinations #부부집합 구하기 위한 라이브러리
 
-global total_list, min_support
-
+global total_list, min_support, c
+c = 0
 total_list = []
 min_support = 0
 def find_first_scan(fin, frequent):
@@ -31,7 +33,7 @@ def find_first_scan(fin, frequent):
     return new_frequent
 
 
-def frequent_count(list):
+def frequent_count_and_support(list):
     global total_list
     new_frequent = {}
     for total_row in total_list:
@@ -43,13 +45,14 @@ def frequent_count(list):
                     new_frequent[make_tuple] = new_frequent[make_tuple] + 1
                 else:
                     new_frequent[make_tuple] = 1
-    print("new" , new_frequent)
+    #print("new" , new_frequent)
 
     for freq in new_frequent:
-        new_frequent[freq] = round((new_frequent[freq]/len(total_list))*100,2)
+        num = new_frequent[freq]/len(total_list)*100
+        new_frequent[freq] = round(num,2)
 
     change_frequent = {key: value for key, value in new_frequent.items() if value >= min_support}
-    print("change", change_frequent)
+    #print("change", change_frequent)
     print(len(change_frequent))
     if len(change_frequent) < 0:
         print("no")
@@ -100,6 +103,26 @@ def join_and_pruning(frequent, order):
     print(new_frequent_list)
     return new_frequent_list
 
+def association_rule(frequent, order, fout):
+    global c
+    copy_order = order
+    frequent_list = list(frequent.keys())
+    print("list", frequent_list, order)
+    #result = str(frequent_list[0]) + '\t' + str('%.2f' % round(frequent.get(frequent_list[0]),2))
+    result = []
+    while copy_order > 1 :
+        for list_item in frequent_list:
+            comb = list(itertools.combinations(set(list_item),copy_order-1))
+            for comb_item in comb:
+                diff = set(list_item) - set(comb_item)
+                count = 0
+                for total_item in total_list:
+                    if set(comb_item).issubset(set(total_item)):
+                        count+= 1
+                freq = frequent.get(list_item) / 100 * len(total_list)
+                fout.write(str(set(comb_item)) +'\t' + str(diff) + '\t' + str('%.2f' % round(frequent[list_item],2)) + '\t' +  str('%.2f' % round(freq/count*100,2)) + '\n')
+                c +=1
+        copy_order -= 1
 
 def main():
     global min_support
@@ -117,13 +140,14 @@ def main():
         if len(list) == 0:
             print("break")
             break
-        elif len(list) == 1:
-            print("here", list)
-            break
-        frequent = frequent_count(list)
+        # elif len(list) == 1:
+        #     print("here", list)
+        #     break
+        frequent = frequent_count_and_support(list)
         #print(frequent)
+        association_rule(frequent, order, fout)
         order += 1
-
+    print("c is ", c)
     fin.close()
     fout.close()
 
