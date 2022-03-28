@@ -4,8 +4,7 @@ import sys
 from pprint import pprint as pp
 from itertools import combinations #부부집합 구하기 위한 라이브러리
 
-global total_list, min_support, c
-c = 0
+global total_list, min_support
 total_list = []
 min_support = 0
 def find_first_scan(fin, frequent):
@@ -22,14 +21,12 @@ def find_first_scan(fin, frequent):
             else:
                 frequent[item] = 1
         total_list.append(transaction)
-    print("###total list", total_list)
-
 
     for freq in frequent:
         frequent[freq] = round((frequent[freq]/len(total_list))*100,2)
 
     new_frequent = {key: value for key, value in frequent.items() if value >= min_support}
-    pp(new_frequent)
+
     return new_frequent
 
 
@@ -45,17 +42,14 @@ def frequent_count_and_support(list):
                     new_frequent[make_tuple] = new_frequent[make_tuple] + 1
                 else:
                     new_frequent[make_tuple] = 1
-    #print("new" , new_frequent)
 
     for freq in new_frequent:
         num = new_frequent[freq]/len(total_list)*100
         new_frequent[freq] = round(num,2)
 
     change_frequent = {key: value for key, value in new_frequent.items() if value >= min_support}
-    #print("change", change_frequent)
-    print(len(change_frequent))
+
     if len(change_frequent) < 0:
-        print("no")
         exit()
     return change_frequent
 
@@ -67,7 +61,7 @@ def join_and_pruning(frequent, order):
             i = set(i)
         list_key.append(i)
 
-    print(list_key)
+    #print(list_key)
     for j in range(len(list_key) - 1):
         for k in range(j + 1, len(list_key)):
             set_keys1 = list_key[j]
@@ -100,16 +94,12 @@ def join_and_pruning(frequent, order):
                             new_frequent_list.append(change_set)
                             break
 
-    print(new_frequent_list)
     return new_frequent_list
 
 def association_rule(frequent, order, fout):
-    global c
     copy_order = order
     frequent_list = list(frequent.keys())
-    print("list", frequent_list, order)
-    #result = str(frequent_list[0]) + '\t' + str('%.2f' % round(frequent.get(frequent_list[0]),2))
-    result = []
+
     while copy_order > 1 :
         for list_item in frequent_list:
             comb = list(itertools.combinations(set(list_item),copy_order-1))
@@ -121,33 +111,31 @@ def association_rule(frequent, order, fout):
                         count+= 1
                 freq = frequent.get(list_item) / 100 * len(total_list)
                 fout.write(str(set(comb_item)) +'\t' + str(diff) + '\t' + str('%.2f' % round(frequent[list_item],2)) + '\t' +  str('%.2f' % round(freq/count*100,2)) + '\n')
-                c +=1
         copy_order -= 1
 
 def main():
     global min_support
-    fin = open('input.txt', "r")
-    fout = open('output.txt', "w")
 
-    min_support = 5
+    if len(sys.argv) == 4:
+        min_support = int(sys.argv[1])
+        fin = open(sys.argv[2], "r")
+        fout = open(sys.argv[3], "w")
+    else:
+        print("다시 입력하세요.")
+        exit()
     frequent = {}
     frequent = find_first_scan(fin, frequent)
-    pp(frequent)
 
     order = 2
     while True:
         list = join_and_pruning(frequent,order)
         if len(list) == 0:
-            print("break")
+            print("finish")
             break
-        # elif len(list) == 1:
-        #     print("here", list)
-        #     break
+
         frequent = frequent_count_and_support(list)
-        #print(frequent)
         association_rule(frequent, order, fout)
         order += 1
-    print("c is ", c)
     fin.close()
     fout.close()
 
