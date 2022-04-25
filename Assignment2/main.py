@@ -4,8 +4,8 @@ import copy
 global attribute
 def main():
     global attribute
-    fin = open('data-2/dt_train1.txt', 'r')
-    fin_test = open('data-2/dt_test1.txt', 'r')
+    fin = open('dt_train1.txt', 'r')
+    fin_test = open('dt_test1.txt', 'r')
     fout = open('result1.txt','w')
     attribute = [] #attribute name 저장하기
     attribute_value = [] #attribute 값들 저장하기  dictionary 형태로
@@ -35,10 +35,6 @@ def main():
 
     #######여기까지 하면 처음 나눌 attribute를 뽑은 것이다.
 
-    decision_tree = []
-    for a in range(len(attribute)):
-        decision_tree.append({})
-
     #split_attribute_list는 attribute 선택하고 나서 쪼개지는 value가 되는데,
     #예를 들어 buying을 뽑았다면 list에는 low, med, high가 들어간다.
 
@@ -57,7 +53,7 @@ def main():
 
     path = []
     total_path = []
-    make_decision_tree(split_attribute_list, split_train_data, remove_index, attribute, decision_tree, path, total_path)
+    make_decision_tree(split_attribute_list, split_train_data, remove_index, attribute, path, total_path)
 
     attribute_check = False
     label_success = False
@@ -109,18 +105,9 @@ def main():
     fin_test.close()
     fout.close()
 
-def test_decision_tree(decision_tree, test_data, root):
-    go = root
-    while True:
-        next_attr = decision_tree[go].get(test_data[go])
-        if type(next_attr) == int:
-            go = next_attr
-        else:
-            label = next_attr
-            return label
 
 
-def make_decision_tree(split_attribute_list, split_train_data, remove_index, attribute_, decision_tree , path, total_path):
+def make_decision_tree(split_attribute_list, split_train_data, remove_index, attribute_ , path, total_path):
     remove_attr = attribute_[remove_index] #선택한 attribute의 이름 ex)maint
 
     for sp_dt in range(len(split_attribute_list)):
@@ -132,13 +119,14 @@ def make_decision_tree(split_attribute_list, split_train_data, remove_index, att
 
         if cal_info(label_count) == 0:
             label = list(copy_attribute_value[-1].keys())
-            decision_tree[attribute.index(remove_attr)][split_attribute_list[sp_dt]] = label[0]
+            #decision_tree[attribute.index(remove_attr)][split_attribute_list[sp_dt]] = label[0]
             path = copy.deepcopy(path)
             path.append((remove_attr, split_attribute_list[sp_dt]))
             path.append((attribute[-1], label[0]))
             total_path.append(path)
             path = path_copy
         elif len(copy_attribute)-1 == 0:
+
             path = copy.deepcopy(path)
             path.append((remove_attr, split_attribute_list[sp_dt]))
             path.append((attribute[-1], max(copy_attribute_value[0], key=copy_attribute_value[0].get)))
@@ -162,10 +150,10 @@ def make_decision_tree(split_attribute_list, split_train_data, remove_index, att
                     if sp in td[remove_index_]:
                         split_node_.append(td)
                 split_train_data_.append(split_node_)
-            decision_tree[attribute.index(remove_attr)][split_attribute_list[sp_dt]] = attribute.index(copy_attribute[remove_index_])
+            #decision_tree[attribute.index(remove_attr)][split_attribute_list[sp_dt]] = attribute.index(copy_attribute[remove_index_])
 
             path.append((remove_attr, split_attribute_list[sp_dt]))
-            make_decision_tree(split_attribute_list_, split_train_data_, remove_index_, copy_attribute, decision_tree, path, total_path)
+            make_decision_tree(split_attribute_list_, split_train_data_, remove_index_, copy_attribute, path, total_path)
             path = path_copy
 
 def cal_train_data(train_data, remove):
@@ -191,13 +179,13 @@ def cal_attribute_value(train_data, attribute_count):
                 attr_value[j][td[j]] = 1
     return attr_value
 
-def find_label_count(split_list):
+def find_label_count(train_data):
     label_count = {}
-    for sl in split_list:
-        if sl[-1] in label_count:
-            label_count[sl[-1]] += 1
+    for data_element in train_data:
+        if data_element[-1] in label_count:
+            label_count[data_element[-1]] += 1
         else:
-            label_count[sl[-1]] = 1
+            label_count[data_element[-1]] = 1
     return [l for l in label_count.values()]
 
 def cal_gain_ratio(info, attribute_value, train_data):
