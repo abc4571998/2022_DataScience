@@ -5,11 +5,16 @@ def main():
     for f in fin:
         row = f.split()
         row.append('\n')
-        if row[5] == 'med' and row[3] == '4' and row[0] == 'vhigh' and row[1] == 'med' and row[4] == 'med':        
-#if row[2] == '2':
+        if row[5] == 'med' and row[0] == 'med' and row[1] == 'vhigh' and row[3]=='4':        
+#if row[2] == '':
             fout.writelines('\t'.join(row))
 
-    
+    ls = [('abc','dd'),('dd','sa')]
+    ds = [('abc','dd'),('dd','sa'),('aaa','m')]
+    if ls in ds:
+        print("here")
+    else:
+        print("no")
     fin.close()
     fout.close()
 if __name__ == '__main__':
